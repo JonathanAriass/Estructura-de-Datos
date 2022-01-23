@@ -1,0 +1,609 @@
+package logic;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Clase GraphTest donde se prueban los diferentes metodos de la clase Graph
+ * 
+ * @author Jonathan Arias Busto (UO283586)
+ * @version 2
+ *
+ */
+class GraphTest {
+
+	Graph<Integer> graph1;
+	Graph<Integer> graph2;
+	Graph<Integer> fullGraph;
+	
+	/**
+	 * Setup para poder usar en los diferentes test
+	 */
+	@BeforeEach
+	public void setUp() {
+		/**
+		 * Grafo de la forma:
+		 * 
+		 * F T T F     0 2 1 0
+		 * F F F F	   0 0 0 0
+		 * F T F F     0 4 0 0
+		 * F F F F     0 0 0 0
+		 */
+		graph1 = new Graph<Integer>(5);
+		graph1.addNode(1);
+		graph1.addNode(2);
+		graph1.addNode(3);
+		graph1.addNode(4);
+		graph1.addEdge(1, 2, 2);
+		graph1.addEdge(1, 3, 1);
+		graph1.addEdge(3, 2, 4);
+		
+		
+		/**
+		 * Grafo de la forma:
+		 * 
+		 * F T T      0 2 1 
+		 * F F F 	  0 0 0 
+		 * F T F      0 4 0 
+		 */
+		graph2 = new Graph<Integer>(4);
+		graph2.addNode(1);
+		graph2.addNode(2);
+		graph2.addNode(3);
+		graph2.addEdge(1, 2, 2);
+		graph2.addEdge(1, 3, 1);
+		graph2.addEdge(3, 2, 4);
+		
+		
+		/**
+		 * Grafo de la forma:
+		 * 
+		 * F T T F F    0 2 1 0 0
+		 * F F F F F   	0 0 0 0 0
+		 * F T F F F    0 4 0 0 0
+		 * F F F F F   	0 0 0 0 0
+		 * F F F F F   	0 0 0 0 0
+		 */
+		fullGraph = new Graph<Integer>(5);
+		fullGraph.addNode(1);
+		fullGraph.addNode(2);
+		fullGraph.addNode(3);
+		fullGraph.addNode(4);
+		fullGraph.addNode(5);
+		fullGraph.addEdge(1, 2, 2);
+		fullGraph.addEdge(1, 3, 1);
+		fullGraph.addEdge(3, 2, 4);
+	}
+	
+	@Test
+	void isFuenteTest1() {
+		assertTrue(graph1.isFuente(1));
+		assertTrue(graph1.isFuente(3));
+	}
+	
+	/**
+	 * GIVEN
+	 * WHEN se crea un grado de Strings
+	 * THEN se comprueba que se crea de forma correcta
+	 */
+	@Test
+	void makeGraphTest1() {
+		Graph<String> aux = new Graph<String>(3);
+		aux.addNode("Uno");
+		aux.addNode("Dos");
+		aux.addNode("Tres");
+		aux.addEdge("Uno", "Tres", 2);
+		aux.addEdge("Tres", "Uno", 1);
+		aux.addEdge("Tres", "Dos", 5);
+		assertEquals(2, aux.getEdge("Uno", "Tres"));
+		assertEquals(5, aux.getEdge("Tres", "Dos"));
+		assertEquals(-1, aux.getEdge("Cuatro", "Dos"));
+		assertEquals(-2, aux.getEdge("Uno", "Cinco"));
+		assertEquals(-3, aux.getEdge("Cinco", "Cuatro"));
+	}
+	
+	/**
+	 * GIVEN un grafo con cuatro nodos
+	 * WHEN se elimina el primer nodo de la lista de nodos
+	 * THEN se comprueba que el primer nodo de la lista de nodos es el que era el ultimo antes de eliminar
+	 *		al primero, tambien se comprueba que el numero de nodos disminuyo y que las aristas que unia
+	 *		al nodo con el resto ya no existen
+	 */
+	@Test
+	void removeNodeTest1() {
+		assertEquals(0, graph1.getNode(1));
+		graph1.removeNode(1);
+		assertEquals(0, graph1.getNode(4));
+		assertEquals(3, graph1.getSize());
+		assertEquals(false, graph1.existEdge(1, 2));
+		assertEquals(false, graph1.existEdge(1, 3));
+	}
+	
+	/**
+	 * GIVEN grafo con cuatro nodos
+	 * WHEN se elimina un grafo del medio de la lista de nodos
+	 * THEN se comprueba que las aristas que tenia con otros nodos ya no existan y que el numero
+	 *      de nodos es una unidad menor
+	 */
+	@Test
+	void removeNodeTest2() {
+		assertEquals(2, graph1.getNode(3));
+		graph1.removeNode(2);
+		assertEquals(3, graph1.getSize());
+		assertEquals(false, graph1.existsNode(2));
+		assertEquals(false, graph1.existEdge(1, 2));
+		assertEquals(false, graph1.existEdge(3, 2));
+	}
+
+	/**
+	 * GIVEN grafo con cuatro nodos
+	 * WHEN se elimina el ultimo nodo de la lista de nodos
+	 * THEN se comprueba que el numero de nodos es uno menor y que el nodo 4 no existe en el grafo
+	 */
+	@Test
+	void removeNodeTest3() {
+		graph1.removeNode(4);
+		assertEquals(3, graph1.getSize());
+		assertEquals(false, graph1.existsNode(4));
+	}
+	
+	/**
+	 * GIVEN grafo con cuatro nodos
+	 * WHEN se elimina un nodo (no existe el nodo en la lista)
+	 * THEN se devuelve -1 al no existir el nodo de la lista
+	 */
+	@Test
+	void removeNodeTest4() {
+		assertEquals(-1, graph1.removeNode(0));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos
+	 * WHEN se añade otro nodo mas
+	 * THEN se comprueba que al añadir el nodo se devuelve 0 y que el numero de nodos aumento en uno
+	 */
+	@Test
+	void addNodeTest1() {
+		assertEquals(0, graph2.addNode(4));
+		assertEquals(4, graph2.getSize());
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos
+	 * WHEN se añade otro nodo mas 
+	 * THEN se comprueba que al intentar añadir el nodo se devuelve un valor negativo al ya existir el nodo
+	 * 		en la lista de nodos
+	 */
+	@Test
+	void addNodeTest2() {
+		assertEquals(-1, graph2.addNode(1));
+	}
+	
+	/**
+	 * GIVEN un grafo completo
+	 * WHEN se añade otro nodo mas 
+	 * THEN se comprueba que al intentar añadir el nodo se devuelve un valor negativo al estar la lista
+	 * 		de nodos llena
+	 */
+	@Test
+	void addNodeTest3() {
+		assertEquals(-2, fullGraph.addNode(6));
+	}
+	
+	/**
+	 * GIVEN un grafo con completo
+	 * WHEN se añade otro nodo mas 
+	 * THEN se comprueba que al intentar añadir el nodo se devuelve un valor negativo al ya existir el nodo
+	 * 		en la lista de nodos y no haber espacio para introducir otro nodo
+	 */
+	@Test
+	void addNodeTest4() {
+		assertEquals(-3, fullGraph.addNode(2));
+	}
+
+	/**
+	 * GIVEN un grafo completo
+	 * WHEN se añade un nodo null
+	 * THEN se comprueba que al intentar añadir el nodo se devuelve -4 al no ser valido este
+	 */
+	@Test
+	void addNodeTest5() {
+		assertEquals(-4, fullGraph.addNode(null));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se busca el nodo 1
+	 * THEN se comprueba que esta en la posicion 0 de la lista de nodos
+	 */
+	@Test
+	void getNodeTest1() {
+		assertEquals(0, graph1.getNode(1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se busca el nodo 4
+	 * THEN se comprueba que esta en la posicion 3 de la lista de nodos
+	 */
+	@Test
+	void getNodeTest2() {
+		assertEquals(3, graph1.getNode(4));
+	}
+	
+	/**
+	 * GIVEN un grafo completo
+	 * WHEN se busca el ultimo nodo
+	 * THEN se comprueba que esta en la posicion size-1
+	 */
+	@Test
+	void getNodeTest3() {
+		assertEquals(fullGraph.getSize()-1, fullGraph.getNode(5));
+	}
+	
+	/**
+	 * GIVEN un grafo completo
+	 * WHEN se busca un nodo del medio de la lista de nodos
+	 * THEN se comprueba que el indice es el correcto
+	 */
+	@Test
+	void getNodeTest4() {
+		assertEquals(2, fullGraph.getNode(3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos
+	 * WHEN se busca un nodo que no esta en el la lista de nodos
+	 * THEN se comprueba que al no existir el nodo en la lista se devuelve -1
+	 */
+	@Test
+	void getNodeTest5() {
+		assertEquals(-1, graph2.getNode(5));
+	}
+	
+	// No se puede ejecutar al parametrizar el grafo a Integer
+	/**
+	 * GIVEN un grafo con 3 nodos
+	 * WHEN se busca un nodo que no esta en la lista de nodos
+	 * THEN se comprueba que al no existir el nodo en la lista se devuelve -1
+	 */
+//	@Test
+//	void getNodeTest6() {
+//		assertEquals(-1, graph2.getNode(3.5));
+//	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo 1 (inicial de la lista)
+	 * THEN se devuelve true al existir el nodo en la lista
+	 */
+	@Test
+	void existsNodeTest1() {
+		assertEquals(true, graph1.existsNode(1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo 4 (final de la lista)
+	 * THEN se devuelve true al existir el nodo en la lista
+	 */
+	@Test
+	void existsNodeTest2() {
+		assertEquals(true, graph1.existsNode(4));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo 2 (nodo medio de la lista)
+	 * THEN se devuelve true al existir el nodo en la lista
+	 */
+	@Test
+	void existsNodeTest3() {
+		assertEquals(true, graph1.existsNode(2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo -1 (no existe en la lista)
+	 * THEN se devuelve false al no existir el nodo en la lista
+	 */
+	@Test
+	void existsNodeTest4() {
+		assertEquals(false, graph1.existsNode(-1));
+	}
+	
+	// No se puede ejecutar al parametrizar el grafo a Integer
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo 2.5 (no existe en la lista)
+	 * THEN se devuelve false al no existir el nodo en la lista
+	 */
+//	@Test
+//	void existsNodeTest5() {
+//		assertEquals(false, graph1.existsNode(2.5));
+//	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos
+	 * WHEN se comprueba si existe el nodo 7 (no existe en la lista)
+	 * THEN se devuelve false al no existir el nodo en la lista
+	 */
+	@Test
+	void existsNodeTest6() {
+		assertEquals(false, graph1.existsNode(7));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 */
+	@Test
+	void existsEdgeTest1() {
+		assertEquals(true, fullGraph.existEdge(1, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 * 
+	 * WHEN se comprueba si existe el arco
+	 * THEN se devuelve true al existir
+	 */
+	@Test
+	void existsEdgeTest2() {
+		assertEquals(true, fullGraph.existEdge(1, 3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 * 
+	 * WHEN se comprueba si existe el arco
+	 * THEN se devuelve false al no existir
+	 */
+	@Test
+	void existsEdgeTest3() {
+		assertEquals(false, fullGraph.existEdge(1, 4));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 * 
+	 * WHEN se comprueba si existe el arco
+	 * THEN se devuelve true al existir
+	 */
+	@Test
+	void existsEdgeTest4() {
+		assertEquals(true, fullGraph.existEdge(3, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 * 
+	 * WHEN se comprueba si existe el arco (con un nodo destino que no existe)
+	 * THEN se devuelve false al no existir el nodo destino
+	 */
+	@Test
+	void existsEdgeTest5() {
+		assertEquals(false, fullGraph.existEdge(1, 6));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos con la siguiente matriz de adyacencia:
+	 * F T T F     0 2 1 0
+	 * F F F F	   0 0 0 0
+	 * F T F F     0 4 0 0
+	 * F F F F     0 0 0 0
+	 * 
+	 * WHEN se comprueba si existe el arco (con el ultimo nodo de la lista y consigo mismo)
+	 * THEN se devuelve false al no existir tal arco
+	 */
+	@Test
+	void existsEdgeTest6() {
+		assertEquals(false, fullGraph.existEdge(5, 5));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (nodo origen no existe)
+	 * THEN se devuelve -1
+	 */
+	@Test
+	void getEdgeTest1() {
+		assertEquals(-1, graph2.getEdge(0, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (nodo destino no existe)
+	 * THEN se devuelve -2
+	 */
+	@Test
+	void getEdgeTest2() {
+		assertEquals(-2, graph2.getEdge(1, 7));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (nodo origen y destino no existen)
+	 * THEN se devuelve -3
+	 */
+	@Test
+	void getEdgeTest3() {
+		assertEquals(-3, graph2.getEdge(0,7));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (ambos nodos existen)
+	 * THEN se devuelve 2 al ser el peso del arco existente
+	 */
+	@Test
+	void getEdgeTest4() {
+		assertEquals(2, graph2.getEdge(1, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (ambos nodos existen)
+	 * THEN se devuelve 4 al ser el peso del arco existente
+	 */
+	@Test
+	void getEdgeTest5() {
+		assertEquals(4, graph2.getEdge(3, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se comprueba si existe el arco entre dos nodos (ambos nodos existen)
+	 * THEN se devuelve -4 al no existir el arco
+	 */
+	@Test
+	void getEdgeTest6() {
+		assertEquals(-4, graph2.getEdge(1, 1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (ambos nodos existen)
+	 * THEN se comprueba que el arco exista
+	 */
+	@Test
+	void addEdgeTest1() {
+		assertEquals(-4, graph1.getEdge(1, 1));
+		assertEquals(0, graph1.addEdge(1, 1, 3));
+		assertEquals(3, graph1.getEdge(1,1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (nodo origen no existe)
+	 * THEN se devuelve -1 al no existir el nodo origen
+	 */
+	@Test
+	void addEdgeTest2() {
+		assertEquals(-1, graph1.addEdge(0, 1, 3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (nodo destino no existe)
+	 * THEN se devuelve -2 al no existir el nodo destino
+	 */
+	@Test
+	void addEdgeTest3() {
+		assertEquals(-2, graph1.addEdge(1, 0, 3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (nodo origen y destino no existen)
+	 * THEN se devuelve -3 al no existir el nodo origen y el nodo destino
+	 */
+	@Test
+	void addEdgeTest4() {
+		assertEquals(-3, graph1.addEdge(0, -1, 3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (peso invalido)
+	 * THEN se devuelve -8 al introducir un peso invalido
+	 */
+	@Test
+	void addEdgeTest5() {
+		assertEquals(-8, graph1.addEdge(1, 1, -3));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (peso invalido)
+	 * THEN se devuelve -8 al introducir un peso invalido
+	 */
+	@Test
+	void addEdgeTest6() {
+		assertEquals(-8, graph1.addEdge(1, 1, -1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 4 nodos (graph1)
+	 * WHEN se añade un arco entre dos nodos (arco ya existente)
+	 * THEN se devuelve -4 al introducir un arco ya existente y se comprueba que el arco
+	 * sigue teniendo el mismo peso
+	 */
+	@Test
+	void addEdgeTest7() {
+		assertEquals(2, graph1.getEdge(1, 2));
+		assertEquals(-4, graph1.addEdge(1, 2, 1));
+		assertEquals(2, graph1.getEdge(1, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se elimina un arco que une dos nodos
+	 * THEN se devuelve -1 al no existir el nodo origen
+	 */
+	@Test
+	void removeEdgeTest1() {
+		assertEquals(-1, graph2.removeEdge(0, 2));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se elimina un arco que une dos nodos
+	 * THEN se devuelve -2 al no existir el nodo destino
+	 */
+	@Test
+	void removeEdgeTest2() {
+		assertEquals(-2, graph2.removeEdge(1, 0));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se elimina un arco que une dos nodos
+	 * THEN se devuelve -3 al no existir los nodos origen y destino
+	 */
+	@Test
+	void removeEdgeTest3() {
+		assertEquals(-3, graph2.removeEdge(0, 0));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se elimina un arco que une dos nodos
+	 * THEN se devuelve -4 al no existir el arco entre 1 y 1
+	 */
+	@Test
+	void removeEdgeTest4() {
+		assertEquals(-4, graph2.removeEdge(1, 1));
+	}
+	
+	/**
+	 * GIVEN un grafo con 3 nodos (graph2)
+	 * WHEN se elimina un arco que une dos nodos
+	 * THEN se devuelve 0 al existir el arco, lo elimina y se comprueba que el arco ya no exista
+	 */
+	@Test
+	void removeEdgeTest5() {
+		assertEquals(0, graph2.removeEdge(1, 2));
+		assertEquals(false, graph2.existEdge(1, 2));
+	}
+}

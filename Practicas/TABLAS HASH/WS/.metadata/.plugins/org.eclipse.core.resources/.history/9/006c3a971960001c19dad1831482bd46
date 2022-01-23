@@ -1,0 +1,295 @@
+import java.lang.reflect.Array;
+
+public class ClosedHashTable<T> extends AbstractHash<T> {
+
+	private static final double MINIMUN_LF = 0.16; // Constante de factor de carga minimo
+	private static final double MAXIMUN_LF = 0.5; // Constante de factor de carga maximo
+	
+	private double minlf; // Variable que contiene el factor de carga minimo
+	private double maxlf; // Variable que contiene el factor de carga maximo
+	
+	private int numElementos; // Numero de elementos insertados en el momento
+	private HashNode<T> tabla[]; // Array con los elementos
+	private int tipoExploracion; // Tipo de exploracion que se usa en la tabla
+	
+	/**
+	 * Constructor de la Tabla Hash Cerrada
+	 * 
+	 * @param size Tamaño de la tabla
+	 * @param tipo Tipo de exploracion que se usara en la tabla
+	 */
+	public ClosedHashTable(int size, int tipo) {
+		this.numElementos = 0;
+		this.tipoExploracion = tipo;
+		this.minlf = MINIMUN_LF;
+		this.maxlf = MAXIMUN_LF;
+		if (isPositivePrime(size)) {
+			tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, size);
+		} else {
+			size = nextPrimeNumber(size);
+			tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, size);
+		}
+		// inicializar la tabla
+		for (int i=0;i<tabla.length;i++) {
+			tabla[i] = new HashNode<T>();
+		}
+	}
+	
+	/**
+	 * Constructor de la Tabla Hash Cerrada (version extendida)
+	 * 
+	 * @param size Tamaño de la tabla
+	 * @param tipo Tipo de exploracion que se usara en la tabla
+	 */
+	public ClosedHashTable(int size, int tipo, double minlf, double maxlf) {
+		this.numElementos = 0;
+		this.tipoExploracion = tipo;
+		this.minlf = minlf;
+		this.maxlf = maxlf;
+		if (isPositivePrime(size)) {
+			tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, size);
+		} else {
+			int aux = nextPrimeNumber(size);
+			tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, aux);
+		}
+		// inicializar la tabla
+		for (int i=0;i<tabla.length;i++) {
+			tabla[i] = new HashNode<T>();
+		}
+	}
+	
+	/**
+	 * Metodo auxiliar que calcula el factor de carga de la tabla (util para saber si hay que hacer algun tipo
+	 * de redispersion).
+	 * 
+	 * @return Factor de carga
+	 */
+	private float calcularFC() {
+		return (float) (getNumOfElems()/(getSize()*1.0));
+	}
+	
+	/**
+	 * Metodo que devuelve el numero de elementos de la tabla
+	 * 
+	 * @return Numero de elementos en la tabla
+	 */
+	@Override
+	public int getNumOfElems() {
+		return this.numElementos;
+	}
+
+	/**
+	 * Metodo que devuelve el tamaño de la tabla
+	 * 
+	 * @return Tamaño de la tabla
+	 */
+	@Override
+	public int getSize() {
+		return this.tabla.length;
+	}
+
+	/**
+	 * Metodo que hace:
+	 * - buscar la posicion en la que iria el elemento
+	 * 		- pos = fHash(elemento)
+	 * 		- mientras el estado de la "pos" sea LLENO tengo que seguir buscando posiciones
+	 * 		- esto ultimo depende del tipo de exploracion:
+	 * 			- si el tipo es 1: pos = fHash(elemento)+intento%getSize() (hay que inicializar el intento = 1)
+	 * 			- si el tipo es 2: pos = fHash(elemento)+(intento*intento)%getSize()
+	 * 		- intento++ ( si el numero de intento es ==  numElems  se parara)
+	 * 		- asignar el elemento a la posicion: tabala[pos].setInfo(elemento); numElems++;
+	 * 		
+	 *
+	 * @param elemento Elemento a añadir
+	 * @return <p>-2: si el elemento es null</p>-1: si no es capaz de insertarlo<p></p><p>0: si se inserta bien</p>
+	 */
+	@Override
+	public int add(T elemento) {
+		if (elemento == null) return -2;
+		return addAux(elemento);
+	}
+
+	/**
+	 * Metodo auxiliar que se encarga de llevar a cabo todo el algoritmo de añadir un elemento a la tabla.
+	 * 
+	 * @param elemento Elemento a añadir
+	 * @return <p>-2: si el elemento es null</p>-1: si no es capaz de insertarlo<p></p><p>0: si se inserta bien</p>
+	 */
+	private int addAux(T elemento) {
+		int pos = fHash(elemento);
+		int intento = 1;
+		
+		while (tabla[pos].getStatus() == HashNode.LLENO && intento<getSize()) {
+			if (tipoExploracion == 1) {
+				pos = (elemento.hashCode()+intento)%getSize();
+			} else if (tipoExploracion == 2) {
+				pos = (elemento.hashCode()+(intento*intento))%getSize();
+			}
+			intento++;
+		}
+		if (tabla[pos].getStatus() != HashNode.LLENO) {
+			tabla[pos].setInfo(elemento);
+			numElementos++;
+			reDispersion();
+			return 0;
+		}
+		return -1;
+	}
+
+	/**
+	 * Obtiene la posicion donde deberia de estar el elemento y se comprueba que el elemento
+	 * es el correcto.
+	 * 
+	 * Si la posicion esta borrada no se devuelve nada si el elemento es el mismo (se para)
+	 * En el caso de que este borrada pero el elemento no coincide se sigue buscando la posicion
+	 * 
+	 * @return null si no se encuentra el elemento o el elemento en caso de encontrarlo
+	 */
+	@Override
+	public T find(T elemento) {
+		int pos = fHash(elemento);
+		int intento = 1;
+		
+		while (tabla[pos].getInfo() != elemento && intento<getSize()) {
+			if (tipoExploracion == 1) {
+				pos = (elemento.hashCode()+intento)%getSize();
+			} else if (tipoExploracion == 2) {
+				pos = (elemento.hashCode()+(intento*intento))%getSize();
+			}
+			intento++;
+		}
+		
+		if (tabla[pos].getStatus() == HashNode.BORRADO || intento >= getSize()) return null;
+		else if (tabla[pos].getInfo() != null && tabla[pos].getInfo().equals(elemento)){
+			return tabla[pos].getInfo();
+		}
+		return null;
+	}
+	
+	/**
+	 * Metodo que devuelve la posicion de un elemento usando o bien una exploracion de tipo 1 o 2.
+	 * 
+	 * @param elemento Elemento a buscar
+	 * @return La posicion del elemento a buscar o bien -1 si no se encuentra el elemento.
+	 */
+	private int getPos(T elemento) {
+		int pos = fHash(elemento);
+		int intento = 1;
+		
+		while (tabla[pos].getInfo() != elemento && intento<getSize()) {
+			if (tipoExploracion == 1) {
+				pos = (elemento.hashCode()+intento)%getSize();
+			} else if (tipoExploracion == 2) {
+				pos = (elemento.hashCode()+(intento*intento))%getSize();
+			}
+			intento++;
+		}
+		
+		if (intento<getSize()) return pos;
+		return -1;
+	}
+
+	/**
+	 * Si la posicion esta llena se invoca al remove del HashNode y se para
+	 * 
+	 * Si esta borrada y coincide con el elemento (se para)
+	 * 
+	 * @return <p>-2: elemento null</p><p>-1: si no se puede borrar o no se encuentra</p><p>0: si se borra</p>
+	 */
+	@Override
+	public int remove(T elemento) {
+		
+		if (elemento == null) return -2;
+		T aux = find(elemento);
+		if (aux == null) return -2;
+		if (aux != null) {
+			int pos = getPos(elemento);
+			if (find(elemento) != null && tabla[pos].getStatus() == HashNode.LLENO) {
+				
+				System.out.println("find: " + find(elemento));
+				System.out.println("pos: " + pos);
+				tabla[pos].remove();
+				numElementos--;
+				inservseRedispersion();
+				return 0;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Metodo que devuelve una cadena con la informacion de la tabla
+	 * 
+	 * @return Cadena con toda la informacion de la tabla
+	 */
+	@Override
+	public String toString() {
+		StringBuilder cadena = new StringBuilder();
+		for(int i=0;i< getSize();i++){
+		cadena.append(tabla[i].toString());
+		cadena.append(";");
+		}
+		cadena.append("[Size: ");
+		cadena.append(getSize());
+		cadena.append(" Num.Elems.: ");
+		cadena.append(getNumOfElems());
+		cadena.append("]");
+		return cadena.toString();
+	}
+
+	/**
+	 * Metodo que aumenta el tamaño de la tabla. Se busca el nuevo tamaño de la tabla a traves del metodo
+	 * nextPrimeNumber() que busca el primo superior mas proximo al tamaño de la tabla antes de la redispersion.
+	 * 
+	 * Se crea la nueva tabla y se inicializa. Se incluyen tambien los elementos de la tabla vieja.
+	 * 
+	 * @return <p>true: en caso de que el factor de carga sea mayor a la carga maxima</p>
+	 * <p>false: en caso de que el factor de carga sea menor a la carga maxima</p>
+	 */
+	@Override
+	protected boolean reDispersion() {
+		if (calcularFC() < maxlf) {
+			return false;
+		}
+		HashNode<T> aux[] = tabla;
+		int newSize = nextPrimeNumber(getSize()*2);
+		this.numElementos = 0;
+		tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, newSize);
+		for (int i=0;i<tabla.length;i++) {
+			tabla[i] = new HashNode<T>();
+		}
+		for (HashNode<T> element : aux) {
+			if (element.getStatus() == HashNode.LLENO) {
+				add(element.getInfo());				
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Metodo que disminuye el tamaño de la tabla. Se busca el nuevo tamaño de la tabla a traves del metodo
+	 * previousPrimeNumber() que busca el primo inferior mas proximo al tamaño de la tabla antes de la redispersion inversa.
+	 * 
+	 * Se crea la nueva tabla y se inicializa. Se incluyen tambien los elementos de la tabla vieja.
+	 * 
+	 * @return 
+	 */
+	@Override
+	protected boolean inservseRedispersion() {
+		if (calcularFC() > minlf) return false;
+		HashNode<T> aux[] = tabla;
+		int newSize = getSize()/2;
+		this.numElementos = 0;
+		tabla = (HashNode<T>[]) Array.newInstance(HashNode.class, newSize);
+		for (int i=0;i<tabla.length;i++) {
+			tabla[i] = new HashNode<T>();
+		}
+		for (HashNode<T> element : aux) {
+			if (element.getStatus() == HashNode.LLENO) {
+				add(element.getInfo());				
+			}
+		}
+		return true;
+	}
+
+}

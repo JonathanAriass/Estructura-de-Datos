@@ -1,0 +1,35 @@
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class FloydTest {
+	
+	Graph fullGraph;
+	
+	@BeforeEach
+	void setUp() throws Exception {
+		fullGraph = new Graph<Integer>(6);
+		fullGraph.addNode(1);
+		fullGraph.addNode(2);
+		fullGraph.addNode(3);
+		fullGraph.addNode(4);
+		fullGraph.addNode(5);
+		fullGraph.addNode(6);
+		fullGraph.addEdge(1, 2, 3);
+		fullGraph.addEdge(1, 3, 4);
+		fullGraph.addEdge(1, 5, 8);
+		fullGraph.addEdge(2, 5, 5);
+		fullGraph.addEdge(3, 5, 3);
+		fullGraph.addEdge(5, 4, 7);
+		fullGraph.addEdge(5, 6, 3);
+		fullGraph.addEdge(6, 4, 2);
+	}
+
+	@Test
+	public void test() {
+		fullGraph.floyd();
+		fullGraph.floydToString();
+	}
+
+}

@@ -1,0 +1,81 @@
+
+public abstract class AbstractHash<T> {
+	
+	abstract public int getNumOfElems();
+	abstract public int getSize();
+	abstract public int add(T elemento);
+	abstract public T find(T elemento);
+	abstract public int remove(T elemento);
+	abstract public String toString();
+	
+	/**
+	 * Metodo que genera la funcion Hash para un elemento
+	 * 
+	 * @param elemento Elemento para el que generar la funcion Hash
+	 * @return El resultado de la funcion Hash
+	 */
+	protected int fHash(T elemento) {
+		int pos = elemento.hashCode()%getSize();
+		if (pos < 0) return pos+getSize();
+		else return pos;
+	}
+	
+	/**
+	 * Metodo que comprueba si un numero es primo positivo
+	 * 
+	 * @param numero Numero a comprobar si es primo positivo
+	 * @return <p>true: si lo es</p><p>false: en otro caso</p>
+	 */
+	protected boolean isPositivePrime(int numero) {
+		if(numero < 2)
+            return false;
+        
+        for(int i = 2; i <= numero / 2; ++i){ 
+            if(numero % i == 0) return false;
+        }
+
+        return true;
+	}
+	
+	/**
+	 * Metodo que devuelve el proximo numero primo a uno dado
+	 * 
+	 * @param numero Numero para el que obtener el proximo primo
+	 * @return Proximo numero primo
+	 */
+	protected int nextPrimeNumber(int numero) {
+		if (numero < 2) return 2;
+		
+		int num = numero;
+		boolean found = false;
+		
+		while(!found) {
+			num++;
+			if (isPositivePrime(num))
+				found = true;
+		}
+		return num;
+	}
+	
+	/**
+	 * Metodo que devuelve el previo numero primo a uno dado
+	 * 
+	 * @param numero Numero para el que obtener el primo previo
+	 * @return Numero primo previo
+	 */
+	protected int previousPrimeNumber(int numero) {
+		if (numero <= 3) return numero;
+		
+		int num = numero;
+		boolean found = false;
+		
+		while (!found) {
+			num--;
+			if(isPositivePrime(num)) found = true;
+		}
+		return num;
+	}
+	
+	abstract protected boolean reDispersion();
+	abstract protected boolean inservseRedispersion();
+}

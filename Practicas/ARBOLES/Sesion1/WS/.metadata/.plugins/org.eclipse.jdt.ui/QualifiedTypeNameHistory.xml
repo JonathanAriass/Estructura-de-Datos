@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="ColasPrioridad.PriorityQueue"/>
+    <fullyQualifiedTypeName name="ColasPrioridad.BinaryHeapMin"/>
+    <fullyQualifiedTypeName name="ColasPrioridad.Documento"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="java.lang.System"/>
+</qualifiedTypeNameHistroy>

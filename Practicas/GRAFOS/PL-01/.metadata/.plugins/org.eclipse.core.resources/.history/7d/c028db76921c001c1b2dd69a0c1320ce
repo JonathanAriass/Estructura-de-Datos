@@ -1,0 +1,53 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class TestBench {
+
+	private static final String CSV_NAME = "Times.csv";
+	
+	public static Object testAlgorithm(String className, String methodName, double n) {
+		Object obj = null;
+		try {
+			obj = Class.forName(className).getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		//el double.class es el tipo de carga que le pasa al metodo (en mi caso double porque trabajo con numeros mas grandes)
+		Method method = null;
+		try {
+			method = obj.getClass().getMethod(methodName, double.class);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		// invoca al metodo con un objeto y con la carga y lo devuelve
+		try {
+			return method.invoke(obj, n);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public static void test(String nombreFichero, int times, int startN, int endN, String className, String methodName) {
+		Object result = null;
+		for (int workLoad = startN; workLoad<endN;workLoad++) {
+			long startTime = System.currentTimeMillis();
+			for (int time=0;time<times;time++) {
+				result = testAlgorithm(className, methodName, workLoad);
+			}
+			long finalTime = System.currentTimeMillis();
+			
+			System.out.println("Carga: " + workLoad + ", Result: " + result + ", Time: " + ((finalTime - startTime)/times));
+		}
+	}
+	
+}

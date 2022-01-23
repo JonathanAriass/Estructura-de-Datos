@@ -1,0 +1,12 @@
+
+public class TestBench {
+
+	public static Object testAlgorithm(String className, String methodName, int n) {
+		Object obj = Class.forName(className).getDeclaredConstructor().newInstance(null);
+		
+		Method method = obj.getClass().getMethod(methodName, int.class);
+		
+		return method.invoke(obj, n);
+	}
+	
+}

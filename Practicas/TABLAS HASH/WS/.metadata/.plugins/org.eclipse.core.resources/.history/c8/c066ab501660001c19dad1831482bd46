@@ -1,0 +1,147 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+public class OpenHash<T extends Comparable<T>> extends AbstractHash<T>  {
+
+	private int numElementos;
+	private AVLTree<T> tabla[];
+	private double minlf;
+	private double maxlf;
+	
+	private static final double MINIMUN_LF = 0.3; // Constante de factor de carga minimo
+	private static final double MAXIMUN_LF = 1.0; // Constante de factor de carga maximo
+	
+	public OpenHash(int tam) {
+		this.numElementos = 0;
+		this.minlf = MINIMUN_LF;
+		this.maxlf = MAXIMUN_LF;
+		if (!isPositivePrime(tam))
+			tam = nextPrimeNumber(tam);
+		this.tabla = (AVLTree<T>[]) Array.newInstance(AVLTree.class, tam);
+		for (int i=0;i<tabla.length;i++) {
+			tabla[i] = new AVLTree<T>();
+		}
+	}
+	
+	@Override
+	public int getNumOfElems() {
+		return numElementos;
+	}
+
+	@Override
+	public int getSize() {
+		return tabla.length;
+	}
+	
+	/**
+	 * Metodo auxiliar que calcula el factor de carga de la tabla (util para saber si hay que hacer algun tipo
+	 * de redispersion).
+	 * 
+	 * @return Factor de carga
+	 */
+	private float calcularFC() {
+		return (float) (getNumOfElems()/(getSize()*1.0));
+	}
+
+	@Override
+	public int add(T elemento) {
+		if (elemento == null) return -2;
+		return addAux(elemento);
+	}
+	
+	/**
+	 * Metodo auxiliar que se encarga de llevar a cabo todo el algoritmo de añadir un elemento a la tabla.
+	 * 
+	 * @param elemento Elemento a añadir
+	 * @return <p>-2: si el elemento es null</p>-1: si no es capaz de insertarlo<p></p><p>0: si se inserta bien</p>
+	 */
+	private int addAux(T elemento) {
+		int pos = fHash(elemento);
+		
+		if (tabla[pos].addNode(elemento) == 0) {
+			tabla[pos].addNode(elemento);
+			numElementos++;
+			reDispersion();
+			return 0;			
+		}
+		return -1;
+	}
+
+	@Override
+	public T find(T elemento) {
+		int pos = fHash(elemento);
+
+		
+		if (tabla[pos] == null) return null;
+		else if (tabla[pos] != null && tabla[pos].searchNode(elemento).equals(elemento)){
+			return tabla[pos].searchNode(elemento).getInfo();
+		}
+		return null;
+	}
+
+	private int getPos(T elemento) {
+		int pos = fHash(elemento);
+		int intento = 1;
+		
+		while (tabla[pos].searchNode(elemento).getInfo() != elemento && intento<getSize()) {
+			pos = (elemento.hashCode()+intento)%getSize();
+			intento++;
+		}
+		
+		if (intento<getSize()) return pos;
+		return -1;
+	}
+	
+	@Override
+	public int remove(T elemento) {
+		if (elemento == null) return -2;
+		T aux = find(elemento);
+		if (aux == null) return -2;
+		if (aux != null) {
+			int pos = getPos(elemento);
+			if (find(elemento) != null) {
+				
+				System.out.println("find: " + find(elemento));
+				System.out.println("pos: " + pos);
+				tabla[pos].removeNode(elemento);
+				numElementos--;
+				inservseRedispersion();
+				return 0;
+			}
+		}
+		return -1;
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	private ArrayList<T> inOrder = new ArrayList<T>();
+
+	@Override
+	protected boolean reDispersion() {
+		inOrder.clear();
+		for (AVLTree<T> arbol : tabla) {
+			if (arbol != null) {
+				ArrayList<T> copy = arbol.inOrder();
+				for (T element : copy) {
+					inOrder.add(element);
+				}
+			}
+		}
+		for (T element : inOrder) {
+			this.add(element);
+		}
+		return true;
+	}
+	
+	
+	@Override
+	protected boolean inservseRedispersion() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+}

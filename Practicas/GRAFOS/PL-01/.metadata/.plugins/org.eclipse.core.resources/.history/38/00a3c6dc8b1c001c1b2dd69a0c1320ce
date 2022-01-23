@@ -1,0 +1,14 @@
+
+public class TestBench {
+
+	public static Object testAlgorithm(String className, String methodName, int n) {
+		Object obj = Class.forName(className).getDeclaredConstructor().newInstance();
+		
+		//el int.class es el tipo de carga que le pasa al metodo
+		Method method = obj.getClass().getMethod(methodName, int.class); 
+		
+		// invoca al metodo con un objeto y con la carga y lo devuelve
+		return method.invoke(obj, n);
+	}
+	
+}

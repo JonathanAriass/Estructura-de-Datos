@@ -1,0 +1,208 @@
+package BST;
+
+public class BSTree<T extends Comparable<T>> {
+
+	// Nodo raiz del arbol BST
+	private BSTNode<T> raiz;
+	
+	// Variable usada para el recorrido inOrder
+	private String inOrder = "";
+	
+	// Variable usada para el recorrido preOrder
+	private String preOrder = "";
+	
+	// Variable usada para el recorrido postOrder
+	private String postOrder = "";
+	
+	/**
+	 * Constructor 
+	 */
+	public BSTree() {
+		this.raiz = null;
+	}
+	
+	/**
+	 * Metodo que busca una clave y en caso de encontrarla devuelve el nodo
+	 * Devuelve null:
+	 * 1.- raiz null
+	 * 2.- clave no encontrada
+	 * 3.- clave null
+	 * 
+	 * @param clave
+	 * @return
+	 */
+	public BSTNode<T> searchNode(T clave) {
+		if (clave == null || this.raiz == null) return null;
+		
+		return search(raiz, clave);
+	}
+	
+	// nunca se puede comparar lo que tiene un nodo y una clave si el nodo es null porque daria un nullPointerException
+	private BSTNode<T> search(BSTNode<T> raiz, T clave) {
+		// no hay arbol y que no se encuentra el elemento
+		if (raiz == null) {
+			return null;
+		} else {
+			if (clave.compareTo(raiz.getInfo()) == 0) {
+				return raiz;
+			} else {
+				if (clave.compareTo(raiz.getInfo()) > 0) {
+					return search(raiz.getRight(), clave);
+				} else {
+					if (clave.compareTo(raiz.getInfo()) < 0) {
+						return search(raiz.getLeft(), clave);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * 0 si añade correctamente el nodo al arbol
+	 * -2 si la clave es null
+	 * -1 si intenta insertar una clave que ya existe, no se permiten claven duplicadas
+	 * 
+	 * @param clave
+	 * @return
+	 */
+	public int addNode(T clave) {
+		if (raiz == null) {
+			raiz = new BSTNode(clave);
+			return 0;
+		}
+		else if (clave == null) return -2;
+		else if (searchNode(clave) != null) return -1;
+		
+		else {
+			addNodeR(this.raiz, clave);
+		}
+		
+		return 0;
+	}
+	
+	/**
+	 * Metodo auxiliar para añadir un hijo que calcula de forma recursiva la posicion
+	 * en la que este debe de estar
+	 * 
+	 * @param raiz2 La raiz del arbol
+	 * @param clave Hijo que se quiere añadir
+	 */
+	private void addNodeR(BSTNode<T> raiz2, T clave) {
+		if (raiz2 == null) {
+			return;
+		} else {
+			if (clave.compareTo(raiz2.getInfo()) < 0) {
+				if (raiz2.getLeft() != null) {
+					addNodeR(raiz2.getLeft(), clave);
+				} else {
+					raiz2.setLeft(new BSTNode(clave));
+				}
+			} else {
+				if (clave.compareTo(raiz2.getInfo()) > 0) {
+					if (raiz2.getRight() != null) {
+						addNodeR(raiz2.getRight(), clave);
+					} else {
+						raiz2.setRight(new BSTNode(clave));
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Metodo que devuelve el orden del arbol (preOrder)
+	 * 
+	 * @return Cadena con el arbol en preOrder
+	 */
+	public String preOrder() {
+		String cadena = preOrderR(raiz) + "\t";
+		return cadena.substring(0,cadena.length()-1);
+	}
+	
+	/**
+	 * Metodo recursivo auxiliar para hacer el recorrido en preOrder
+	 * 
+	 * @param raiz2 Raiz del arbol
+	 * @return Cadena con la informacion del recorrido en preOrder
+	 */
+	private String preOrderR(BSTNode<T> raiz2) {
+		if (raiz2 == null) return "";
+		
+		preOrder += "\t" + raiz2.getInfo();
+		preOrderR(raiz2.getLeft());
+		preOrderR(raiz2.getRight());
+		
+		
+		return preOrder;
+	}
+
+	/**
+	 * Metodo que devuelve el orden del arbol (postOrder)
+	 * 
+	 * @return Cadena con el arbol en postOrder
+	 */
+	public String postOrder() {
+		String cadena = postOrderR(raiz) + "\t";
+		return cadena.substring(0,cadena.length()-1);
+	}
+	
+	/**
+	 * Metodo recursivo auxiliar para hacer el recorrido en postOrder
+	 * 
+	 * @param raiz2 Raiz del arbol
+	 * @return Cadena con la informacion del recorrido en postOrder
+	 */
+	private String postOrderR(BSTNode<T> raiz2) {
+		if (raiz2 == null) return "";
+		
+		postOrderR(raiz2.getLeft());
+		postOrderR(raiz2.getRight());
+		postOrder += "\t" + raiz2.getInfo();
+		
+		
+		return postOrder;
+	}
+
+	/**
+	 * Metodo que devuelve el orden del arbol (inOrder)
+	 * 
+	 * @return Cadena con el arbol en inOrder
+	 */
+	public String inOrder() {
+		String cadena = inOrderR(raiz) + "\t";
+		return cadena.substring(0,cadena.length()-1);
+	}
+	
+	/**
+	 * Metodo recursivo auxiliar para hacer el recorrido en inOrder
+	 * 
+	 * @param raiz2 Raiz del arbol
+	 * @return Cadena con la informacion del recorrido en inOrder
+	 */
+	private String inOrderR(BSTNode<T> raiz2) {
+		if (raiz2 == null) return "";
+		
+		inOrderR(raiz2.getLeft());
+		inOrder += "\t" + raiz2.getInfo();
+		inOrderR(raiz2.getRight());
+		
+		return inOrder;
+	}
+	
+	///////////////////////////////
+	// HASTA AQUI EN LA SESION 1 //
+	///////////////////////////////
+	
+	/**
+	 * Borra un nodo del arbol y devuelve:
+	 * 0 si se borra el elemento
+	 * -2 si la clave que se intenta borrar es null o intento borrar una clave en un arbol vacio
+	 * -1 si intento borrar una clave que no existe
+	 * 
+	 * @param clave
+	 * @return
+	 */
+//	public int removeNode(T clave) {}
+	
+}

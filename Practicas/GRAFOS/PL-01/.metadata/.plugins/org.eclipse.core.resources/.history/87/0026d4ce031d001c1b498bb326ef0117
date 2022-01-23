@@ -1,0 +1,12 @@
+import java.io.IOException;
+
+public class Main {
+
+	public static void main(String[] args) throws IOException {
+		// si quiero utilizar este primero tengo que cambiar el testAlgoritmo a int.class y int el parametro de carga
+		//System.out.println(TestBench.testAlgorithm("Algoritmos", "factorial", 10.0));
+		TestBench.test("CSV_results_lineal",5, 0, 40, "Algoritmos", "linealDoNothing");
+		
+	}
+
+}

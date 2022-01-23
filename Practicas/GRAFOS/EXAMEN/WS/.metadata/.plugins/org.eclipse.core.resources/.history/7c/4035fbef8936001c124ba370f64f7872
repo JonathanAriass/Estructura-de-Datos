@@ -1,0 +1,688 @@
+package logic;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+
+/**
+ * Clase Graph que representa un grafo dirigido
+ * 
+ * @author Jonathan Arias Busto (UO283586)
+ * @version 2
+ *
+ * @param <T> Parametro que indica que permite cualquier tipo de Object
+ */
+public class Graph<T> {
+
+	private double[][] weights; // Matriz de pesos del grafo
+	private boolean[][] edges; // Matriz de aristas del grafo
+	private T[] nodes; // Matriz de nodos del grafo
+	private int size; // Numero de nodos del grafo
+	
+	/////////////////////////////////////////
+	//Variables para el algoritmo de Floyd //
+	/////////////////////////////////////////
+	private double[][] a = new double[size][size]; // Matriz a del algoritmo de Floyd que almacena los resultados del algoritmo
+	private T[][] p = (T[][]) new Object[size][size]; // Matriz p del algoritmo de Floyd que almacena los nodos del camino
+	
+	/**
+	 * Constructor de la clase Graph que inicializa las matrices de pesos y arcos, asi
+	 * como darle valor 0 a size (numero de nodos)
+	 */
+	public Graph(int dimension) {
+		this.weights = new double[dimension][dimension];
+		this.edges = new boolean[dimension][dimension];
+		nodes = (T[])new Object[dimension];
+		this.size = 0;
+	}
+	
+	/**
+	 * Metodo que devuelve el numero de nodos del grafo
+	 * 
+	 * @return Numero de nodos del grafo
+	 */
+	public int getSize() {
+		return this.size;
+	}
+	
+	/**
+	 * Metodo que devuelve el indice, de un nodo, de la lista de nodos
+	 * 
+	 * @param node Nodo a buscar en la lista
+	 * @return Indice del nodo en la lista de nodos
+	 */
+	protected int getNode(T node) {
+		if (node == null) return -1;
+		for (int i=0;i<size;i++) {
+			if (node.equals(nodes[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Metodo que comprueba si un nodo existe en la lista de nodos
+	 * 
+	 * @param node Nodo a comprobar si existe
+	 * @return <li>true: existe en la lista de nodos</li><li>false: no existe en la lista de nodos</li>
+	 */
+	public boolean existsNode(T node) {
+		if (getNode(node) != -1) return true;
+		return false;
+	}
+	
+	/**
+	 * Metodo que añade un nodo al grafo. Para esto se tiene que hacer una serie de comprobaciones
+	 * tales como que se pueda incluir el nodo en la lista de nodos, que el nodo no existe ya en la lista...
+	 * 
+	 * Si el nodo se añade correctamente, se añadira a la lista de nodos y las matrices de pesos y arcos en
+	 * la ultima posicion
+	 * 
+	 * @param node Nodo a añadir en el grafo
+	 * @return <li> 0: se añade correctamente</li><li>-1: el nodo existe ya en la lista, pero se puede añadir</li>
+	 * <li>-2: el nodo no existe en la lista pero no hay espacio en la lista de nodos</li>
+	 * <li>-3: el nodo existe en la lista y ademas no hay sitio en el en la lista de nodos</li>
+	 * <li>-4: el nodo no es valido para ser añadido</li>
+	 */
+	public int addNode(T node) {
+		
+		if (node == null) return -4;
+		if (!existsNode(node) && size<nodes.length) {
+			nodes[size] = node;
+			
+			for (int i=0; i<size; i++) {
+				edges[size][i] = false;
+				weights[size][i] = 0;
+				edges[i][size] = false;
+				weights[i][size] = 0;
+			}
+			++size;
+			return 0;
+		} else {
+			if (existsNode(node) && !(size<nodes.length)) return -3;
+			else if (existsNode(node) && size<nodes.length) return -1;
+			else if (!existsNode(node) && !(size<nodes.length)) return -2;
+		}
+		return -4;
+	}
+	
+	/**
+	 * Metodo que devuelve la matriz de pesos del grafo
+	 * 
+	 * @return Matriz de pesos del grafo
+	 */
+	public double[][] getWeights() {
+		return weights;
+	}
+
+	/**
+	 * Metodo que devuelve la matriz de aristas del grafo
+	 * 
+	 * @return Matriz de aristas del grafo
+	 */
+	public boolean[][] getEdges() {
+		return edges;
+	}
+
+	/**
+	 * Metodo que comprueba si un arco existe en el grafo
+	 * 
+	 * @param source Nodo origen
+	 * @param target Nodo destino
+	 * @return <li>true: existe el arco</li><li>false: el arco no existe</li>
+	 */
+	public boolean existEdge(T source, T target) {
+		if (existsNode(source) && existsNode(target)) {
+			return edges[getNode(source)][getNode(target)];
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * Metodo que extrae el peso de un arco en caso de que este exista
+	 * 
+	 * @param source Nodo origen
+	 * @param target Nodo destino
+	 * @return <li>-1: no existe el nodo origen en la lista</li><li>-2: no existe el nodo destino en la
+	 * lista</li><li>-3: no existen ni nodo origen ni nodo destino</li><li>-4: no existe arco</li><li>peso:
+	 * devuelve el peso del arco en caso de existir</li>
+	 */
+	public double getEdge(T source, T target) {
+		if (!existsNode(source) && !existsNode(target)) return -3;
+		else if (!existsNode(target)) return -2;
+		else if (!existsNode(source)) return -1;
+		if (existEdge(source, target)) return weights[getNode(source)][getNode(target)];
+		return -4;
+	}
+	
+	/**
+	 * Metodo que añade un arco en el grafo
+	 * 
+	 * @param source Nodo origen
+	 * @param target Nodo destino
+	 * @param weight Peso del arco
+	 * @return <li>-1: no existe el nodo origen en la lista</li><li>-2: no existe el nodo destino en la
+	 * lista</li><li>-3: no existen ni nodo origen ni nodo destino</li><li>-4: ya existe arco</li><li>-8:
+	 * peso invalido (peso<0)</li><li>0: si se inserta el arco</li>
+	 */
+	public int addEdge(T source, T target, double weight) {
+		if (weight < 0) return -8;
+		if (!existsNode(source) && !existsNode(target)) return -3;
+		else if (!existsNode(target)) return -2;
+		else if (!existsNode(source)) return -1;
+		if (!existEdge(source, target)) {
+			edges[getNode(source)][getNode(target)] = true;
+			weights[getNode(source)][getNode(target)] = weight;
+			return 0;
+		}
+		return -4;
+	}
+	
+	/**
+	 * Metodo que borra un arco del grafo
+	 * 
+	 * @param source Nodo origen
+	 * @param target Nodo destino
+	 * @return <li>-1: no existe el nodo origen en la lista</li><li>-2: no existe el nodo destino en la
+	 * lista</li><li>-3: no existen ni nodo origen ni nodo destino</li><li>-4: no existe el arco</li>
+	 * <li>0: si se elimina el arco</li>
+	 */
+	public int removeEdge(T source, T target) {
+		if (!existsNode(source) && !existsNode(target)) return -3;
+		else if (!existsNode(target)) return -2;
+		else if (!existsNode(source)) return -1;
+		if (existEdge(source, target)) {
+			edges[getNode(source)][getNode(target)] = false;
+			weights[getNode(source)][getNode(target)] = 0.0;
+			return 0;
+		}
+		return -4;
+	}
+	
+	/**
+	 * Metodo que elimina un nodo del grafo y todos los arcos que esten conectados a el
+	 * 
+	 * @param node Nodo a eliminar
+	 * @return <li>-1: si el nodo no existe</li><li>0: se borra correctamente</li>
+	 */
+	public int removeNode(T node) {
+		if (!existsNode(node)) return -1;
+		int aux = getNode(node);
+		if (getNode(node) != size) {
+			nodes[getNode(node)] = nodes[size-1];
+			for (int j=0;j<size;j++) {
+				edges[j][aux] = edges[j][size-1];
+				edges[aux][j] = edges[size-1][j];
+				weights[j][aux] = weights[j][size-1];
+				weights[aux][j] = weights[size-1][j];
+			}
+			edges[aux][aux] = edges[size-1][size-1];
+			weights[aux][aux] = weights[size-1][size-1];
+			--size;
+			
+			return 0;
+		}
+		return -1;
+	}
+	
+	/**
+	 * Metodo toString() de la clase Graph que devuelve una cadena de caracteres con la informacion
+	 * del grafo que invoque a este.
+	 * 
+	 * @return Cadena con toda la informacion del grafo
+	 */
+	public String toString() { 
+		DecimalFormat df = new DecimalFormat("#.##"); 
+		String cadena = ""; 
+		cadena += "NODOS\n"; 
+		for (int i = 0; i < size; i++) { 
+		cadena += nodes[i].toString() + "\t"; 
+		} 
+		cadena += "\n\nARISTAS\n"; 
+		for (int i = 0; i < size; i++) { 
+		for (int j = 0; j < size; j++) { 
+		if (edges[i][j]) 
+		cadena += "T\t"; 
+		else
+		cadena += "F\t"; 
+		} 
+		cadena += "\n"; 
+		} 
+		cadena += "\nPESOS\n"; 
+		for (int i = 0; i < size; i++) { 
+		for (int j = 0; j < size; j++) { 
+		cadena += (edges[i][j]?df.format(weights[i][j]):"-") + "\t"; 
+		} 
+		cadena += "\n"; 
+		} 
+		return cadena; 
+		} 
+	
+	/**
+	 * Metodo principal del algoritmo de Dijkstra, donde se inicializan los vectores de costes
+	 * y caminos, asi como el vector "S".
+	 * 
+	 * En este metodo tambien se incluyen llamadas a metodos como getPivote() para poder completar
+	 * el algoritmo con exito
+	 * 
+	 * @param origen Nodo del que se parte para realizar el algoritmo de Dijkstra
+	 * @return Vector de costes final del algoritmo de Dijkstra
+	 */
+	public double[] dijkstra(T origen) {
+		if (!existsNode(origen) || origen == null) return null;
+		double[] costes = new double[getSize()];
+		T[] caminos = (T[])new Object[getSize()];
+		costes = inicializaCostes(origen);
+		caminos = inicializaCaminos(origen);
+		boolean[] s = new boolean[this.size];
+		int w = minCost(costes, s);
+		
+		while (w != -1) {
+			s[w] = true;
+			s[getNode(origen)] = true;
+			for (int i=0; i<size; i++)
+				if (!s[i] && existEdge(nodes[w], nodes[i]) && costes[w] + weights[w][i] < costes[i]) {
+						costes[i] = costes[w] + weights[w][i];
+						caminos[i] = nodes[w];
+				}
+			w = minCost(costes, s);
+		}
+		
+		return costes;
+	}
+
+	/**
+	 * Metodo el cual calcula el siguiente nodo desde el que algoritmo debe ser ejecutado
+	 * 
+	 * @param costes Vector de costes
+	 * @param s Vector de nodos usados
+	 * @return Posicion del nodo a usar en el siguiente paso del algoritmo
+	 */
+	private int minCost(double[] costes, boolean[] s) {
+		double aux = Double.POSITIVE_INFINITY;
+		int pos = -1;
+		for (int i=0; i<costes.length; i++) {
+			if (s[i] == false) {
+				if (aux > costes[i] && costes[i] != 0) {
+					aux = costes[i];
+					pos = i;
+				}
+			}
+		}
+		
+		return pos;
+	}
+
+	/**
+	 * Metodo que inicializa el vector de costes
+	 * 
+	 * @param origen Nodo del que se parte para hacer el algoritmo de Dijkstra
+	 * @return Vector de costes inicializado
+	 */
+	private double[] inicializaCostes(T origen) {
+		double[] aux = new double[getSize()];
+		aux[getNode(origen)] = 0;
+		for (T node : nodes) {
+			if (node == null) break;
+			if (!origen.equals(node)) {
+				if (existEdge(origen, node)) {
+					aux[getNode(node)] = getEdge(origen, node);
+				}
+				else { 
+					aux[getNode(node)] = Double.POSITIVE_INFINITY; 
+				}
+			}
+		}
+		return aux;
+	}
+	
+	/**
+	 * Metodo que inicializa el vector de caminos
+	 * 
+	 * @param origen Nodo del que se parte para hacer el algoritmo de Dijkstra
+	 * @return Vector de caminos inicializado
+	 */
+	private T[] inicializaCaminos(T origen) {
+		T[] aux = (T[]) new Object[getSize()];
+		for (T node : nodes) {
+			if (existEdge(origen, node)) 
+				aux[getNode(node)] = origen;
+		}
+		
+		return aux;
+	}
+	
+	/////////////////////////////////////////////////////
+	// PARTE DE IMPLEMENTACION DEL ALGORITMO DE FLOYD  //
+	/////////////////////////////////////////////////////
+	/**
+	 * Metodo que implementa el algoritmo de Floyd segun el visto en clase de teoria 
+	 * 
+	 * @return <li>0 en caso de que se complete el algoritmo con exito</li>
+	 * <li>-1 en caso de que no haya nodos</li>
+	 */
+	public int floyd() {
+		if (isNodesEmpty()) return -1;
+		a = inicializarCostesFloyd();
+		p = inicializarCaminosFloyd();
+		for (int k=0;k<size;k++) {
+			for (int i=0;i<size;i++) {
+				for (int j=0;j<size;j++) {
+					if (a[i][k] + a[k][j] < a[i][j]) {
+						a[i][j] = a[i][k] + a[k][j];
+						p[i][j] = nodes[k];
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * Metodo que comprueba si no hay nodos en el grafo
+	 * 
+	 * @return <li>true en caso de que no haya nodos</li><li>false en caso de que haya algun nodo</li>
+	 */
+	private boolean isNodesEmpty() {
+		for (int i=0;i<size;i++) {
+			if (nodes[i] != null) return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Metodo que inicializa la matriz de costes del algoritmo de Floyd
+	 * 
+	 * @return Matriz de costes del algoritmo de Floyd
+	 */
+	private double[][] inicializarCostesFloyd() {
+		a = new double[getSize()][getSize()];
+		for (int i=0;i<size;i++) {
+			for (int j=0;j<size;j++) {
+				if (i == j) {
+					a[i][j] = 0.0;
+				}
+				else if(existEdge(nodes[i], nodes[j])) {
+					a[i][j] = weights[i][j];
+				} else {
+					a[i][j] = Double.POSITIVE_INFINITY;
+				}
+			}
+		}
+		return a;
+	}
+
+	/**
+	 * Metodo que inicializa la matriz de caminos del algoritmo de Floyd
+	 * 
+	 * @return Matriz de caminos del algoritmo de Floyd
+	 */
+	private T[][] inicializarCaminosFloyd() {
+		p = (T[][]) new Object[getSize()][getSize()];
+		for (int i=0;i<size;i++) {
+			for (int j=0;j<size;j++) {
+				p[i][j] = null;
+			}
+		}
+		return p;
+	}
+
+	/**
+	 * Metodo que devuelve la matriz a (matriz de costes) del algoritmo de Floyd
+	 * 
+	 * @return Matriz de costes del algoritmo de Floyd
+	 */
+	protected double[][] getFloydA() {
+		return a;
+	}
+	
+	/**
+	 * Metodo que devuelve la matriz p (matriz de caminos) del algoritmo de Floyd
+	 * 
+	 * @return Matriz de caminos del algoritmo de Floyd
+	 */
+	protected T[][] getFloydP() {
+		return p;
+	}
+	
+	/**
+	 * Metodo que devuelve el coste minimo entre nodo origen y nodo destino
+	 * 
+	 * @param nodoOrigen Nodo origen
+	 * @param nodoDestino Nodo destino
+	 * @return Coste minimo de llegar del nodo origen a nodo destino
+	 */
+	public double minCostPath(T nodoOrigen, T nodoDestino) {
+		if (a==null) {
+			floyd();
+		}
+		return a[getNode(nodoOrigen)][getNode(nodoDestino)];
+	}
+	
+	/**
+	 * Metodo toString del algoritmop de Floyd donde se imprimen las matrices A y P
+	 * 
+	 * @return Cadena con toda la informacion de las matrices A y P
+	 */
+	public String floydToString() {
+		int numNodes=size; 
+		String cadena=" "; 
+		DecimalFormat df = new DecimalFormat("#.##"); 
+		
+		 double[][] aFloyd = getFloydA(); 
+	        if (aFloyd != null) { 
+	            cadena += "\nAFloyd\n"; 
+	            for (int i = 0; i < numNodes; i++) { 
+	                for (int j = 0; j < numNodes; j++) { 
+	                    cadena += df.format(aFloyd[i][j]) + "\t"; 
+	                } 
+	                cadena += "\n"; 
+	            } 
+	        } 
+	  
+	        T[][] pFloyd = getFloydP(); 
+	        if (pFloyd != null) { 
+	                cadena += "\nPFloyd\n"; 
+	            for (int i = 0; i < numNodes; i++) { 
+	                for (int j = 0; j < numNodes; j++) { 
+	                	if (pFloyd[i][j]==null) cadena+="-"+ "\t";
+	                	
+	                	else cadena += pFloyd[i][j].toString() + "\t"; 
+	                }
+	                cadena += "\n"; 
+	            } 
+	        } 
+	        return cadena;
+	}
+	
+	private ArrayList<T> camino = new ArrayList<T>(); // ArrayList auxiliar para metodo Path()
+	
+	/**
+	 * Metodo que calcula el camino mas corto para ir de un nodo origen a un nodo destino
+	 * 
+	 * @param nodoOrigen Nodo origen
+	 * @param nodoDestino Nodo destino
+	 * @return Cadena con la informacion del camino mas corto del nodo origen al nodo destino
+	 */
+	public String path(T nodoOrigen, T nodoDestino) {
+		if (nodoOrigen.equals(nodoDestino)) {
+			return nodoOrigen.toString();
+		}
+		else if (p[getNode(nodoOrigen)][getNode(nodoDestino)] == null && minCostPath(nodoOrigen, nodoDestino) != Double.POSITIVE_INFINITY) {
+			return nodoOrigen.toString() + "\t(infinity)\t" + nodoDestino.toString();
+		}
+		else {
+			camino.add(nodoOrigen);
+			pathInter(nodoOrigen, nodoDestino);
+			camino.add(nodoDestino);
+			String res = constructPath(nodoOrigen, nodoDestino, camino);
+			return res;
+		}
+		
+	}
+	
+	/**
+	 * Metodo auxiliar para extraer la cadena del Path() 
+	 * 
+	 * @param nodoOrigen Nodo origen
+	 * @param nodoDestino Nodo destino
+	 * @param camino2 ArrayList donde se encuetran los nodos del camino en orden
+	 * @return Cadena con el camino (nodos y pesos) desde el nodo origen hasta el nodo destino
+	 */
+	private String constructPath(T nodoOrigen, T nodoDestino, ArrayList<T> camino2) {
+		String aux = "";
+		for (int i=0;i<camino2.size()-1;i++) {
+			aux += camino2.get(i).toString();
+			aux += "\t(" + minCostPath(camino.get(i), camino.get(i+1)) + ")\t";
+		}
+		aux += nodoDestino.toString();
+		return aux;
+	}
+
+	/**
+	 * Metodo que busca los nodos intermedios del camino y los añade a una lista de nodos
+	 * 
+	 * @param i Nodo i desde el que se desea encontrar el camino
+	 * @param j Nodo j al que se desea llegar
+	 */
+	private void pathInter(T i, T j) {
+		T k = p[getNode(i)][getNode(j)];
+		if (k != null && !i.equals(k) && !j.equals(k)) {
+			pathInter(i, k);
+			camino.add(k);
+			pathInter(k, j);
+		}
+		
+		// Segunda opcion para hacer el pathInter()
+		
+		/**
+		 * if (k != null && !i.equals(k) && !j.equals(k)) {
+			return pathInter(i,k) + k.toString() + pathInger(k,j);
+		   }
+		   else
+		   	return "\t(" + minCostPath(i,j) + ")\t";
+		 */
+	}
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////
+	// PARTE DE IMPLEMENTACION DEL ALGORITMO DE RECORRIDO EN PROFUNDIDAD  //
+	////////////////////////////////////////////////////////////////////////
+	
+	private boolean[] visited; // Array de booleanos donde se indicara si el nodo esta visitado o no
+	private String cadena = ""; // Cadena donde se ira incluyendo toda la informacion del recorrido del algoritmo
+	
+	/**
+	 * Metodo que lanza el algoritmo del recorrido en profundidad
+	 * Si no existe el nodo devuelve la cadena vacia
+	 * 
+	 * @param nodo Nodo desde el que se lanza el algoritmo de recorrido en profundidad
+	 * @return Cadena con el recorrido del algoritmo
+	 */
+	public String recorridoProfundidad(T nodo) {
+		if (!existsNode(nodo)) return "";
+		visited = new boolean[size];
+		cadena = "";
+		recursivoProfundidad(nodo, visited);
+		return cadena;
+	}
+
+	/**
+	* Método auxiliar que implementa el Recorrido en Profundidad: 
+	* Desde un nodo pasado como parámetro,
+	* actualiza el vector de nodos visitados con dicho nodo y
+	* comprueba si existe camino para el resto de nodos que no se encuentren visitados. 
+	* En caso de que exista camino, repite el mismo proceso para el nuevo nodo.
+	* Además, imprime el recorrido seguido en cadena con formato
+	* 
+	* @param source Nodo origen
+	* @param visited Vector de nodos visitados
+	*/
+	private void recursivoProfundidad(T source, boolean[] visited) {
+		visited[getNode(source)] = true;
+		cadena += source.toString() + "\t";
+		
+		for (int i=0;i<size;i++) {
+			if (!visited[i] && existEdge(source, nodes[i])) {
+				recursivoProfundidad(nodes[i], visited);
+			}
+		}
+	}
+	
+	
+	
+	/////////////////////////
+	// METODOS PARA EXAMEN //
+	/////////////////////////
+	public boolean isFuente(T node) {
+		int entrada = 0;
+		int salida = 0;
+		for (int i=0;i<size;i++) {
+				if (existEdge(node, nodes[i]) && node.equals(nodes[i])) {
+					entrada++;
+					salida++;
+				} 
+				if (existEdge(node, nodes[i]) && !node.equals(nodes[i])) {
+					salida++;
+				} 
+				if (existEdge(nodes[i], node) && !node.equals(nodes[i])) {
+					entrada++;
+				}
+				
+		}
+		if (salida > 0 && entrada == 0) return true;
+		return false;
+	}
+	
+	public boolean isSumidero(T node) {
+		int entrada = 0;
+		int salida = 0;
+		for (int i=0;i<size;i++) {
+				if (existEdge(node, nodes[i]) && node.equals(nodes[i])) {
+					entrada++;
+					salida++;
+				} 
+				if (existEdge(node, nodes[i]) && !node.equals(nodes[i])) {
+					salida++;
+				} 
+				if (existEdge(nodes[i], node) && !node.equals(nodes[i])) {
+					entrada++;
+				}
+				
+		}
+		if (entrada > 0 && salida == 0) return true;
+		return false;
+	}
+	
+	public boolean isAislado(T node) {
+		int entrada = 0;
+		int salida = 0;
+		for (int i=0;i<size;i++) {
+				if (existEdge(node, nodes[i]) && node.equals(nodes[i])) {
+					entrada++;
+					salida++;
+				} 
+				if (existEdge(node, nodes[i]) && !node.equals(nodes[i])) {
+					salida++;
+				} 
+				if (existEdge(nodes[i], node) && !node.equals(nodes[i])) {
+					entrada++;
+				}
+				
+		}
+		if (salida == 0 && entrada == 0) return true;
+		return false;
+	}
+	
+	public int excentridadNodo(T node) {
+		if (a == null) {
+			floyd();
+		}
+		double aux = 0;
+		for (int i=0;i<size;i++) {
+			if (a[i][getNode(node)] > aux)
+				aux = a[i][getNode(node)];
+		}
+	}
+}

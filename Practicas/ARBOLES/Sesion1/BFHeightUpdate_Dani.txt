@@ -1,0 +1,34 @@
+//	public void updateBFHeight() {
+//		// caso ambos hijos
+//		if(getLeft() != null && getRight() != null) {
+//			this.balanceFactor = getRight().height - getLeft().height;
+//			
+//			if(getLeft().height > getRight().height) {
+//				this.height= getLeft().height + 1;
+//			}else {
+//				this.height = getRight().height + 1;
+//			}
+//		}
+//		
+//		//caso hijo derecho
+//		if(getLeft() == null && getRight() != null) {
+//			this.balanceFactor = getRight().height -  (-1);
+//			this.height = getRight().height + 1;
+//		}
+//		
+//		//caso hijo izquierdo
+//		if(getLeft() != null && getRight() == null) {
+//			this.balanceFactor =-1 -  getLeft().height;
+//			this.height= getLeft().height + 1;
+//		}
+//		
+//		// caso sin hijos
+//		if(getLeft() == null && getRight() == null) {
+//			this.balanceFactor = 0;
+//			this.height= 0;
+//		}
+//		
+//		
+//		
+//		
+//	}

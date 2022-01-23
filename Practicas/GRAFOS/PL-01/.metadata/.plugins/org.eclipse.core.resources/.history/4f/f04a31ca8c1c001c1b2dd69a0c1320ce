@@ -1,0 +1,36 @@
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class TestBench {
+
+	public static Object testAlgorithm(String className, String methodName, int n) {
+		Object obj = null;
+		try {
+			obj = Class.forName(className).getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		//el int.class es el tipo de carga que le pasa al metodo
+		Method method = null;
+		try {
+			method = obj.getClass().getMethod(methodName, int.class);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		// invoca al metodo con un objeto y con la carga y lo devuelve
+		try {
+			return method.invoke(obj, n);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+}
