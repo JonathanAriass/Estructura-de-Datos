@@ -1,7 +1,0 @@
-[12:44, 26/10/2021] Jaime: tipo calcular excentricidad
-[12:45, 26/10/2021] Jaime: o el grado de entrada de salida y el grado genérico de un nodo CHECK
-[12:45, 26/10/2021] Jaime: o saber si es nodo fuente o destino CHECK
-[12:45, 26/10/2021] Jaime: o sumidero CHECK
-[12:45, 26/10/2021] Jaime: o aislado CHECK
-[12:45, 26/10/2021] Jaime: o si el grado es denso o ligero
-[12:46, 26/10/2021] Jaime: o fuertemente conexo
